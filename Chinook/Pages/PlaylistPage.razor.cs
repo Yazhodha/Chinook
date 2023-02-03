@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Chinook.ClientModels;
+using Chinook.Services;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace Chinook.Pages
@@ -8,7 +9,7 @@ namespace Chinook.Pages
     public class PlaylistPageBase : ComponentBase
     {
         [Parameter] public long PlaylistId { get; set; }
-        [Inject] IDbContextFactory<ChinookContext> DbFactory { get; set; }
+        [Inject] IUserPlaylistService _userPlaylistService { get; set; }
         [CascadingParameter] private Task<AuthenticationState> authenticationState { get; set; }
 
         protected ClientModels.Playlist Playlist;
@@ -20,15 +21,18 @@ namespace Chinook.Pages
             CurrentUserId = await GetUserId();
 
             await InvokeAsync(StateHasChanged);
-            var DbContext = await DbFactory.CreateDbContextAsync();
+            await LoadPlaylist();
+        }
 
-            Playlist = DbContext.Playlists
-                .Include(a => a.Tracks).ThenInclude(a => a.Album).ThenInclude(a => a.Artist)
-                .Where(p => p.PlaylistId == PlaylistId)
-                .Select(p => new ClientModels.Playlist()
+        private async Task LoadPlaylist()
+        {
+            var playList = await _userPlaylistService.GetPlaylist(PlaylistId);
+            if (playList != null)
+            {
+                Playlist = playList.Select(p => new ClientModels.Playlist()
                 {
                     Name = p.Name,
-                    Tracks = p.Tracks.Select(t => new ClientModels.PlaylistTrack()
+                    Tracks = p.Tracks.Select(t => new PlaylistTrack()
                     {
                         AlbumTitle = t.Album.Title,
                         ArtistName = t.Album.Artist.Name,
@@ -36,8 +40,8 @@ namespace Chinook.Pages
                         TrackName = t.Name,
                         IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == "Favorites")).Any()
                     }).ToList()
-                })
-                .FirstOrDefault();
+                }).FirstOrDefault();
+            }
         }
 
         private async Task<string> GetUserId()

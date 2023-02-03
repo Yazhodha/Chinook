@@ -20,6 +20,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<ChinookUser>>();
 builder.Services.AddScoped<IArtistService, ArtistService>();
 builder.Services.AddScoped<IAlbumService, AlbumService>();
+builder.Services.AddScoped<IUserPlaylistService, UserPlaylistService>();
 
 var app = builder.Build();
 
