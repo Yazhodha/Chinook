@@ -59,5 +59,19 @@ namespace Chinook.Services
                 .Include(a => a.Tracks).ThenInclude(a => a.Album).ThenInclude(a => a.Artist)
                 .Where(p => p.PlaylistId == playListId);
         }
+
+        public async void RemoveFromFavourite(long trackId, string currentUserId, long playlistId)
+        {
+            var dbContext = await _dbContextTask;
+            var dbTrack = dbContext.Tracks.FirstOrDefault(t => t.TrackId == trackId);
+            var favouritePlayList = (await GetPlaylist(playlistId)).FirstOrDefault();
+
+            if (favouritePlayList != null)
+            {
+                favouritePlayList.Tracks.Remove(dbTrack);
+                dbContext.Update(favouritePlayList);
+                dbContext.SaveChanges();
+            }
+        }
     }
 }

@@ -61,10 +61,14 @@ namespace Chinook.Pages
             await LoadPlaylist();
         }
 
-        protected void UnfavoriteTrack(long trackId)
+        protected async void UnfavoriteTrack(long trackId)
         {
             var track = Playlist.Tracks.FirstOrDefault(t => t.TrackId == trackId);
             InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} removed from playlist Favorites.";
+
+            //Remove track from favorite list under user
+            _userPlaylistService.RemoveFromFavourite(trackId, CurrentUserId, PlaylistId);
+            await LoadPlaylist();
         }
 
         protected void RemoveTrack(long trackId)
