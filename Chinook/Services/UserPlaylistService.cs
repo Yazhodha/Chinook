@@ -93,5 +93,37 @@ namespace Chinook.Services
             var dbContext = await _dbContextTask;
             return dbContext.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == currentUserId)).ToList();
         }
+
+        public async void AddPlaylist(string playlistName, string currentUserId, long trackId)
+        {
+            var dbContext = await _dbContextTask;
+            var dbTrack = dbContext.Tracks.FirstOrDefault(t => t.TrackId == trackId);
+
+            //check for existing playlist and creat new if not
+            var existingPlaylist = dbContext.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == currentUserId && up.Playlist.Name == playlistName)).SingleOrDefault();
+
+            if (existingPlaylist != null)
+            {
+                existingPlaylist.Tracks.Add(dbTrack);
+                dbContext.Update(existingPlaylist);
+                dbContext.SaveChanges();
+            }
+            else
+            {
+                var playList = dbContext.UserPlaylists.Add(new UserPlaylist
+                {
+                    UserId = currentUserId,
+                    PlaylistId = DateTime.Now.Ticks,
+                    Playlist = new Playlist
+                    {
+                        Name = playlistName,
+                        PlaylistId = DateTime.Now.Ticks,
+                        Tracks = new List<Track> { dbTrack }
+                    },
+                });
+
+                dbContext.SaveChanges();
+            }
+        }
     }
 }

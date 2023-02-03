@@ -69,14 +69,15 @@ else
         <div class="form-group mb-2">
             <label for="ExistingPlaylist">Add to existing playlist</label>
             <select class="form-control" id="ExistingPlaylist">
-                <option>Playlist 1</option>
-                <option>Playlist 2</option>
-                <option>Playlist 3</option>
+                @foreach (var playList in Playlists)
+                {
+                    <option value="@playList.Name">@playList.Name</option>
+                }
             </select>
         </div>
         <div class="form-group mb-2">
             <label for="NewPlaylist">Create new playlist</label>
-            <input type="text" id="NewPlaylist" class="form-control" placeholder="Name for the new playlist">
+            <input type="text" id="NewPlaylist" class="form-control" @bind-value="NewPlaylistName" placeholder="Name for the new playlist">
         </div>
     </Body>
     <Footer>

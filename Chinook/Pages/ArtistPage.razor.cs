@@ -86,10 +86,13 @@ namespace Chinook.Pages
             PlaylistDialog.Open();
         }
 
-        protected void AddTrackToPlaylist()
+        protected async void AddTrackToPlaylist()
         {
             CloseInfoMessage();
             InfoMessage = $"Track {Artist.Name} - {SelectedTrack.AlbumTitle} - {SelectedTrack.TrackName} added to playlist {{playlist name}}.";
+
+            _userPlaylistService.AddPlaylist(NewPlaylistName ?? ExistingPlaylistName, CurrentUserId, SelectedTrack.TrackId);
+
             PlaylistDialog.Close();
         }
 
