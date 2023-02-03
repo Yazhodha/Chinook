@@ -125,5 +125,11 @@ namespace Chinook.Services
                 dbContext.SaveChanges();
             }
         }
+
+        public async Task<List<Playlist>> GetAllUserPlaylist()
+        {
+            var dbContext = await _dbContextTask;
+            return dbContext.Playlists.ToList();
+        }
     }
 }
