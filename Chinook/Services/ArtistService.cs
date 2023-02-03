@@ -14,6 +14,19 @@ namespace Chinook.Services
             _dbContextTask = _dbFactory.CreateDbContextAsync();
         }
 
+        public async Task<List<Track>> GetAlbumTracks(long artistId)
+        {
+            var dbContext = await _dbContextTask;
+            return dbContext.Tracks.Where(a => a.Album.ArtistId == artistId)
+                .Include(a => a.Album).ToList();
+        }
+
+        public async Task<Artist> GetArtistById(long artistId)
+        {
+            var dbContext = await _dbContextTask;
+            return dbContext.Artists.SingleOrDefault(a => a.ArtistId == artistId);
+        }
+
         public async Task<List<Artist>> GetArtists()
         {
             var dbContext = await _dbContextTask;

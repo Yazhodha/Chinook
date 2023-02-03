@@ -9,6 +9,7 @@ namespace Chinook.Pages
     {
         protected List<Artist> Artists;
         [Inject] IArtistService ArtistService { get; set; }
+        [Inject] IAlbumService AlbumService { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -21,10 +22,9 @@ namespace Chinook.Pages
             return await ArtistService.GetArtists();
         }
 
-        //public async Task<List<Album>> GetAlbumsForArtist(int artistId)
-        //{
-        //    //var dbContext = await DbFactory.CreateDbContextAsync();
-        //    //return dbContext.Albums.Where(a => a.ArtistId == artistId).ToList();
-        //}
+        public async Task<List<Album>> GetAlbumsForArtist(int artistId)
+        {
+            return await AlbumService.GetAlbumsForArtist(artistId);
+        }
     }
 }
