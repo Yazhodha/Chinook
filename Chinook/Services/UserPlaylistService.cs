@@ -73,5 +73,19 @@ namespace Chinook.Services
                 dbContext.SaveChanges();
             }
         }
+
+        public async void RemoveFromPlaylist(long trackId, string currentUserId, long playlistId)
+        {
+            var dbContext = await _dbContextTask;
+            var dbTrack = dbContext.Tracks.FirstOrDefault(t => t.TrackId == trackId);
+            var playlist = (await GetPlaylist(playlistId)).FirstOrDefault();
+
+            if (playlist != null)
+            {
+                playlist.Tracks.Remove(dbTrack);
+                dbContext.Update(playlist);
+                dbContext.SaveChanges();
+            }
+        }
     }
 }

@@ -71,10 +71,11 @@ namespace Chinook.Pages
             await LoadPlaylist();
         }
 
-        protected void RemoveTrack(long trackId)
+        protected async void RemoveTrack(long trackId)
         {
-            CloseInfoMessage();
-
+            InfoMessage = $"Track removed from playlist Favorites.";
+            _userPlaylistService.RemoveFromPlaylist(trackId, CurrentUserId, PlaylistId);
+            await LoadPlaylist();
         }
 
         protected void CloseInfoMessage()
