@@ -87,5 +87,11 @@ namespace Chinook.Services
                 dbContext.SaveChanges();
             }
         }
+
+        public async Task<List<Playlist>> GetPlaylistsByUserId(string currentUserId)
+        {
+            var dbContext = await _dbContextTask;
+            return dbContext.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == currentUserId)).ToList();
+        }
     }
 }

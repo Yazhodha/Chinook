@@ -1,5 +1,6 @@
 ﻿using Chinook.ClientModels;
 using Chinook.Models;
+using Chinook.Services;
 using Chinook.Shared.Components;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -12,7 +13,8 @@ namespace Chinook.Pages
     {
         [Parameter] public long ArtistId { get; set; }
         [CascadingParameter] private Task<AuthenticationState> authenticationState { get; set; }
-        [Inject] IDbContextFactory<ChinookContext> DbFactory { get; set; }
+        [Inject] IArtistService _artistService { get; set; }
+        [Inject] IUserPlaylistService _userPlaylistService { get; set; }
         protected Modal PlaylistDialog { get; set; }
 
         protected Artist Artist;
@@ -21,17 +23,29 @@ namespace Chinook.Pages
         protected PlaylistTrack SelectedTrack;
         protected string InfoMessage;
         protected string CurrentUserId;
+        public string ExistingPlaylistName { get; set; }
+        public List<ClientModels.Playlist> Playlists { get; set; }
+        public string NewPlaylistName { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
             await InvokeAsync(StateHasChanged);
             CurrentUserId = await GetUserId();
-            var DbContext = await DbFactory.CreateDbContextAsync();
 
-            Artist = DbContext.Artists.SingleOrDefault(a => a.ArtistId == ArtistId);
+            Artist = await _artistService.GetArtistById(ArtistId);
+            await LoadTrackList();
 
-            Tracks = DbContext.Tracks.Where(a => a.Album.ArtistId == ArtistId)
-                .Include(a => a.Album)
+            //Loading existing playlists on modal
+            Playlists = (await _userPlaylistService.GetPlaylistsByUserId(CurrentUserId))
+                .Select(p => new ClientModels.Playlist()
+                {
+                    Name = p.Name,
+                }).ToList();
+        }
+
+        private async Task LoadTrackList()
+        {
+            Tracks = (await _artistService.GetAlbumTracks(ArtistId))
                 .Select(t => new PlaylistTrack()
                 {
                     AlbumTitle = (t.Album == null ? "-" : t.Album.Title),
@@ -49,10 +63,14 @@ namespace Chinook.Pages
             return userId;
         }
 
-        protected void FavoriteTrack(long trackId)
+        protected async void FavoriteTrack(long trackId)
         {
             var track = Tracks.FirstOrDefault(t => t.TrackId == trackId);
             InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} added to playlist Favorites.";
+
+            //Add track to the favourite playlist
+            _userPlaylistService.AddToFavourite(trackId, CurrentUserId);
+            await LoadTrackList();
         }
 
         protected void UnfavoriteTrack(long trackId)
