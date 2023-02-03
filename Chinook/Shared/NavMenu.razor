@@ -24,7 +24,7 @@
         <div class="nav-item px-3">
             @foreach (var playList in playlists)
             {
-                <NavLink class="nav-link" href="playlist/638110883485645174">
+                <NavLink class="nav-link" href="@($"playlist/{playList.PlaylistId}")">
                     <i class="bi bi-music-note-list me-3" style="font-size: 1.25em"></i>@playList.Name
                 </NavLink>
             }
