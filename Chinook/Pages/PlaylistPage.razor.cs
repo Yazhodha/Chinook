@@ -51,10 +51,14 @@ namespace Chinook.Pages
             return userId;
         }
 
-        protected void FavoriteTrack(long trackId)
+        protected async void FavoriteTrack(long trackId)
         {
             var track = Playlist.Tracks.FirstOrDefault(t => t.TrackId == trackId);
             InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} added to playlist Favorites.";
+
+            //Add track to the favourite playlist under user
+            _userPlaylistService.AddToFavourite(trackId, CurrentUserId);
+            await LoadPlaylist();
         }
 
         protected void UnfavoriteTrack(long trackId)
