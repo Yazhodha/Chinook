@@ -29,8 +29,6 @@ After you click 'Click here to confirm your account' you should be able to login
 
 Please refer commit messages for additional info. 
 
-If anyone wants to login - email : yazhodha@live.com pw: Yazh$1372 
-
 Screen shots :
 ![image](https://user-images.githubusercontent.com/4354651/216688239-33d2ce1f-e876-4984-9265-b9a5e4222773.png)
 
