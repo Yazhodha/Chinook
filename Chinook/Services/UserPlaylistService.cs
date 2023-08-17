@@ -21,7 +21,6 @@ namespace Chinook.Services
         {
             try
             {
-
                 var dbContext = await _dbContextTask;
                 var dbTrack = dbContext.Tracks.FirstOrDefault(t => t.TrackId == trackId);
                 var favouritePlayList = dbContext.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == currentUserId && up.Playlist.Name == Constants.Favourite)).FirstOrDefault();

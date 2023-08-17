@@ -2,6 +2,6 @@
 {
     public static class Constants
     {
-        public static readonly string Favourite = "Favourites";
+        public static readonly string Favourite = "My favorite tracks";
     }
 }

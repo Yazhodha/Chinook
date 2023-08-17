@@ -59,15 +59,16 @@ else
         Add to playlist
     </Title>
     <Body>
+       
         @if (SelectedTrack != null)
         {
-            <div class="form-group mb-2">
+            <div class="form-group mb-4">
                 <label>@Artist.Name - @SelectedTrack.AlbumTitle - @SelectedTrack.TrackName</label>
             </div>
         }
 
-        <div class="form-group mb-2">
-            <label for="ExistingPlaylist">Add to existing playlist</label>
+        <div class="form-group mb-2 mt-2">
+            <label for="ExistingPlaylist">Add to existing playlist - Click to select</label>
             <select class="form-control" id="ExistingPlaylist" @bind="ExistingPlaylistName">
                 @foreach (var playList in Playlists)
                 {
@@ -81,6 +82,9 @@ else
         </div>
     </Body>
     <Footer>
+        <div>
+            <p style="color: red;">Note : Leave new playlist field empty if you want to add track to an existing playlist</p>
+        </div>
         <button class="btn btn-success" @onclick="AddTrackToPlaylist">Save</button>
     </Footer>
 </Modal>

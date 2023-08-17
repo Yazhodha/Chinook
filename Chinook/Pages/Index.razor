@@ -5,7 +5,14 @@
 
 <PageTitle>Index</PageTitle>
 
-<h1>Artists</h1>
+<h1 class="mb-2">Artists</h1>
+
+<div class="mb-3">
+    <label for="searchArtist">Search Artist by Name:</label>
+    <input id="searchArtist" class="form-control" @bind="SearchQuery" />
+    <button class="btn btn-primary mt-2" @onclick="SearchArtists">Search</button>
+</div>
+
 
 @if (Artists == null)
 {
@@ -21,7 +28,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var artist in Artists)
+            @foreach (var artist in FilteredArtists)
             {
                 <tr>
                     <td><a href="Artist/@artist.ArtistId">@artist.Name</a></td>

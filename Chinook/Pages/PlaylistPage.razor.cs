@@ -54,7 +54,7 @@ namespace Chinook.Pages
         protected async void FavoriteTrack(long trackId)
         {
             var track = Playlist.Tracks.FirstOrDefault(t => t.TrackId == trackId);
-            InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} added to playlist Favorites.";
+            InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} added to playlist {Constants.Favourite}.";
 
             //Add track to the favourite playlist under user
             _userPlaylistService.AddToFavourite(trackId, CurrentUserId);
@@ -65,10 +65,10 @@ namespace Chinook.Pages
         protected async void UnfavoriteTrack(long trackId)
         {
             var track = Playlist.Tracks.FirstOrDefault(t => t.TrackId == trackId);
-            InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} removed from playlist Favorites.";
+            InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} removed from playlist {Constants.Favourite}.";
 
             //Remove track from favorite list under user
-            _userPlaylistService.RemoveFromFavourite(trackId, CurrentUserId, PlaylistId);
+            _userPlaylistService.RemoveFromFavourite(trackId, CurrentUserId);
             await LoadPlaylist();
 
             await InvokeAsync(StateHasChanged);
