@@ -18,7 +18,7 @@ namespace Chinook.Services
         {
             var dbContext = await _dbContextTask;
             return dbContext.Tracks.Where(a => a.Album.ArtistId == artistId)
-                .Include(a => a.Album).ToList();
+                .Include(a => a.Album).Include(p => p.Playlists).ThenInclude(up => up.UserPlaylists).ToList();
         }
 
         public async Task<Artist> GetArtistById(long artistId)

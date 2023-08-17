@@ -9,6 +9,7 @@ namespace Chinook.Services
         Task<IQueryable<Playlist>> GetPlaylist(long id);
         Task<List<Playlist>> GetPlaylistsByUserId(string currentUserId);
         void RemoveFromFavourite(long trackId, string currentUserId, long playlistId);
+        void RemoveFromFavourite(long trackId, string currentUserId);
         void RemoveFromPlaylist(long trackId, string currentUserId, long playlistId);
         Task<List<Playlist>> GetAllUserPlaylist();
     }

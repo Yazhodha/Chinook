@@ -38,7 +38,7 @@ namespace Chinook.Pages
                         ArtistName = t.Album.Artist.Name,
                         TrackId = t.TrackId,
                         TrackName = t.Name,
-                        IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == "Favorites")).Any()
+                        IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == Constants.Favourite)).Any()
                     }).ToList()
                 }).FirstOrDefault();
             }
@@ -59,6 +59,7 @@ namespace Chinook.Pages
             //Add track to the favourite playlist under user
             _userPlaylistService.AddToFavourite(trackId, CurrentUserId);
             await LoadPlaylist();
+            await InvokeAsync(StateHasChanged);
         }
 
         protected async void UnfavoriteTrack(long trackId)
@@ -69,6 +70,8 @@ namespace Chinook.Pages
             //Remove track from favorite list under user
             _userPlaylistService.RemoveFromFavourite(trackId, CurrentUserId, PlaylistId);
             await LoadPlaylist();
+
+            await InvokeAsync(StateHasChanged);
         }
 
         protected async void RemoveTrack(long trackId)

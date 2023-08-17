@@ -7,47 +7,62 @@ namespace Chinook.Services
     {
         private readonly IDbContextFactory<ChinookContext> _dbFactory;
         private Task<ChinookContext> _dbContextTask;
+        private readonly INotificationService _notificationService;
 
-        public UserPlaylistService(IDbContextFactory<ChinookContext> dbFactory)
+        public UserPlaylistService(IDbContextFactory<ChinookContext> dbFactory,
+            INotificationService notificationService)
         {
             _dbFactory = dbFactory;
             _dbContextTask = _dbFactory.CreateDbContextAsync();
+            _notificationService = notificationService;
         }
 
         public async void AddToFavourite(long trackId, string currentUserId)
         {
-            var dbContext = await _dbContextTask;
-            var dbTrack = dbContext.Tracks.FirstOrDefault(t => t.TrackId == trackId);
-            var favouritePlayList = dbContext.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == currentUserId && up.Playlist.Name == "Favorites")).FirstOrDefault();
-
-            if (favouritePlayList == null)
+            try
             {
-                var playList = await CreateFavouritePlayList(currentUserId);
-                playList.Playlist.Tracks.Add(dbTrack);
-                dbContext.Update(playList);
-            }
-            else
-            {
-                favouritePlayList.Tracks.Add(dbTrack);
-                dbContext.Update(favouritePlayList);
-            }
 
-            dbContext.SaveChanges();
+                var dbContext = await _dbContextTask;
+                var dbTrack = dbContext.Tracks.FirstOrDefault(t => t.TrackId == trackId);
+                var favouritePlayList = dbContext.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == currentUserId && up.Playlist.Name == Constants.Favourite)).FirstOrDefault();
+
+                if (favouritePlayList == null)
+                {
+                    var playList = await CreateFavouritePlayList(currentUserId);
+                    playList.Playlist.Tracks.Add(dbTrack);
+                    dbContext.Update(playList);
+                }
+                else
+                {
+                    favouritePlayList.Tracks.Add(dbTrack);
+                    dbContext.Update(favouritePlayList);
+                }
+
+                dbContext.SaveChanges();
+            }
+            catch
+            {
+                throw;
+            }
         }
 
         private async Task<UserPlaylist> CreateFavouritePlayList(string currentUserId)
         {
             var dbContext = await _dbContextTask;
-            var playList = dbContext.UserPlaylists.Add(new UserPlaylist
+            var userPlaylist = new UserPlaylist
             {
                 UserId = currentUserId,
                 Playlist = new Playlist
                 {
-                    Name = "Favorites",
+                    Name = Constants.Favourite,
                     PlaylistId = DateTime.Now.Ticks
                 },
-            });
+            };
+            var playList = dbContext.UserPlaylists.Add(userPlaylist);
             dbContext.SaveChanges();
+
+            //Raising the event to update the navigation
+            _notificationService.RaisNewPlaylistAdded(userPlaylist.Playlist);
 
             return playList.Entity;
         }
@@ -60,11 +75,33 @@ namespace Chinook.Services
                 .Where(p => p.PlaylistId == playListId);
         }
 
+        public async Task<IQueryable<Playlist>> GetFavouritePlaylist(string currentUserId)
+        {
+            var dbContext = await _dbContextTask;
+            return dbContext.Playlists
+                .Include(a => a.Tracks).ThenInclude(a => a.Album).ThenInclude(a => a.Artist)
+                .Where(p => p.UserPlaylists.Any(up => up.UserId == currentUserId && up.Playlist.Name == Constants.Favourite));
+        }
+
         public async void RemoveFromFavourite(long trackId, string currentUserId, long playlistId)
         {
             var dbContext = await _dbContextTask;
             var dbTrack = dbContext.Tracks.FirstOrDefault(t => t.TrackId == trackId);
             var favouritePlayList = (await GetPlaylist(playlistId)).FirstOrDefault();
+
+            if (favouritePlayList != null)
+            {
+                favouritePlayList.Tracks.Remove(dbTrack);
+                dbContext.Update(favouritePlayList);
+                dbContext.SaveChanges();
+            }
+        }
+
+        public async void RemoveFromFavourite(long trackId, string currentUserId)
+        {
+            var dbContext = await _dbContextTask;
+            var dbTrack = dbContext.Tracks.FirstOrDefault(t => t.TrackId == trackId);
+            var favouritePlayList = (await GetFavouritePlaylist(currentUserId)).FirstOrDefault();
 
             if (favouritePlayList != null)
             {
@@ -110,7 +147,7 @@ namespace Chinook.Services
             }
             else
             {
-                var playList = dbContext.UserPlaylists.Add(new UserPlaylist
+                var userPlaylist = new UserPlaylist
                 {
                     UserId = currentUserId,
                     PlaylistId = DateTime.Now.Ticks,
@@ -120,9 +157,13 @@ namespace Chinook.Services
                         PlaylistId = DateTime.Now.Ticks,
                         Tracks = new List<Track> { dbTrack }
                     },
-                });
+                };
+                var playlist = dbContext.UserPlaylists.Add(userPlaylist);
 
                 dbContext.SaveChanges();
+
+                //Raising the event to update the navigation
+                _notificationService.RaisNewPlaylistAdded(userPlaylist.Playlist);
             }
         }
 

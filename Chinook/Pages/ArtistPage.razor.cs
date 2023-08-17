@@ -30,10 +30,11 @@ namespace Chinook.Pages
         protected override async Task OnInitializedAsync()
         {
             await InvokeAsync(StateHasChanged);
+
             CurrentUserId = await GetUserId();
+            await LoadTrackList();
 
             Artist = await _artistService.GetArtistById(ArtistId);
-            await LoadTrackList();
 
             //Loading existing playlists on modal
             Playlists = (await _userPlaylistService.GetPlaylistsByUserId(CurrentUserId))
@@ -43,15 +44,22 @@ namespace Chinook.Pages
                 }).ToList();
         }
 
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (!firstRender) await InvokeAsync(StateHasChanged);
+            base.OnAfterRenderAsync(firstRender);
+        }
+
         private async Task LoadTrackList()
         {
-            Tracks = (await _artistService.GetAlbumTracks(ArtistId))
+            var tracks = await _artistService.GetAlbumTracks(ArtistId);
+            Tracks = tracks
                 .Select(t => new PlaylistTrack()
                 {
                     AlbumTitle = (t.Album == null ? "-" : t.Album.Title),
                     TrackId = t.TrackId,
                     TrackName = t.Name,
-                    IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == "Favorites")).Any()
+                    IsFavorite = t.Playlists.Where(p => p.UserPlaylists.Any(up => up.UserId == CurrentUserId && up.Playlist.Name == Constants.Favourite)).Any()
                 })
                 .ToList();
         }
@@ -65,18 +73,33 @@ namespace Chinook.Pages
 
         protected async void FavoriteTrack(long trackId)
         {
-            var track = Tracks.FirstOrDefault(t => t.TrackId == trackId);
-            InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} added to playlist Favorites.";
+            try
+            {
+                var track = Tracks.FirstOrDefault(t => t.TrackId == trackId);
+                InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} added to playlist Favorites.";
 
-            //Add track to the favourite playlist
-            _userPlaylistService.AddToFavourite(trackId, CurrentUserId);
-            await LoadTrackList();
+                //Add track to the favourite playlist
+
+                _userPlaylistService.AddToFavourite(trackId, CurrentUserId);
+                await LoadTrackList();
+            }
+            catch (Exception ex)
+            {
+                //toast and let something went wrong, please retry.
+
+            }
+
+            StateHasChanged();
         }
 
-        protected void UnfavoriteTrack(long trackId)
+        protected async void UnfavoriteTrack(long trackId)
         {
             var track = Tracks.FirstOrDefault(t => t.TrackId == trackId);
             InfoMessage = $"Track {track.ArtistName} - {track.AlbumTitle} - {track.TrackName} removed from playlist Favorites.";
+
+            _userPlaylistService.RemoveFromFavourite(trackId, CurrentUserId);
+            await LoadTrackList();
+            StateHasChanged();
         }
 
         protected void OpenPlaylistDialog(long trackId)
